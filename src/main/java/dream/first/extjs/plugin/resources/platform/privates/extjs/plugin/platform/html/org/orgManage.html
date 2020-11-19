@@ -1,0 +1,23 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<jsp:include page="${COMMONLIB_PATH}"></jsp:include>
+	<script type="text/javascript" src="${THIS_PROJECT_ROOT_PATH}/dict/dict?dictTypes=showChild,orgType"></script>
+    <script type="text/javascript" src="${THIS_PROJECT_ROOT_PATH}/resources/extjs/plugin/platform/js/org/orgManage.js"></script>
+    <script type="text/javascript">
+		var orgName = "${SESSION_LOGIN_USER_INFO.org.orgName}";
+		var orgId = "${SESSION_LOGIN_USER_INFO.org.id}";
+		var orgNo = "${SESSION_LOGIN_USER_INFO.org.orgNo}";
+		var userOrgId = "";
+		var userOrgName = "";
+		var userOrgNo = "";
+		var userRealName = "";
+		var userName = "";
+	</script>
+    <title>组织管理</title>
+</head>
+<body>
+
+</body>
+</html>

@@ -3,6 +3,7 @@
  */
 package dream.first.extjs.plugin.platform.user.controller;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -14,18 +15,21 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.yelong.commons.lang.Strings;
-import org.yelong.core.jdbc.dialect.Dialect;
-import org.yelong.core.jdbc.dialect.DialectType;
+import org.yelong.core.model.collector.ModelCollectors;
 import org.yelong.core.model.sql.SqlModel;
+import org.yelong.support.servlet.resource.response.ResourceResponseException;
+import org.yelong.support.spring.mvc.HandlerResponseWay;
+import org.yelong.support.spring.mvc.ResponseWay;
 
 import com.github.pagehelper.PageInfo;
 import com.labbol.cocoon.core.utils.security.coder.JSDesCoder;
 
 import dream.first.core.platform.user.model.User;
 import dream.first.core.platform.user.service.UserCommonService;
-import dream.first.extjs.controller.BaseExtJSCrudModelController;
-import dream.first.extjs.plugin.platform.user.dto.UserByRoleDTO;
-import dream.first.extjs.plugin.platform.user.dto.UserDTO;
+import dream.first.extjs.base.controller.DFBaseExtJSCrudModelController;
+import dream.first.extjs.base.msg.DFEJsonMsg;
+import dream.first.extjs.plugin.platform.ExtJSPluginPlatform;
+import dream.first.extjs.plugin.platform.user.handle.UserQueryHandler;
 import dream.first.extjs.plugin.platform.user.service.UserService;
 import dream.first.extjs.support.msg.JsonMsg;
 
@@ -34,8 +38,8 @@ import dream.first.extjs.support.msg.JsonMsg;
  * 
  * @since 2.0
  */
-@RequestMapping(value = "user")
-public abstract class BaseUserController<M extends User> extends BaseExtJSCrudModelController<M> {
+@RequestMapping({ "user", "extjs/plugin/platform/user" })
+public abstract class BaseUserController<M extends User> extends DFBaseExtJSCrudModelController<M> {
 
 	@Resource
 	protected UserCommonService userCommonService;
@@ -43,9 +47,15 @@ public abstract class BaseUserController<M extends User> extends BaseExtJSCrudMo
 	@Resource
 	protected UserService userService;
 
+	@Resource
+	protected UserQueryHandler userQueryHandler;
+
+	@ResponseBody
 	@RequestMapping("index")
-	public String index() {
-		return "platform/user/userManage.jsp";
+	@ResponseWay(HandlerResponseWay.MODEL_AND_VIEW)
+	public void index() throws ResourceResponseException, IOException {
+		responseHtml(ExtJSPluginPlatform.RESOURCE_PRIVATES_PACKAGE,
+				ExtJSPluginPlatform.RESOURCE_PREFIX + "/html/user/userManage.html");
 	}
 
 	/**
@@ -71,7 +81,7 @@ public abstract class BaseUserController<M extends User> extends BaseExtJSCrudMo
 		JsonMsg msg = new JsonMsg(true);
 		String userId = getRequest().getParameter("model.id");
 		if (StringUtils.isBlank(userId)) {
-//			User user = modelService.findById(User.class, userId);
+			// User user = modelService.findById(User.class, userId);
 			// if ((user != null) &&
 			// (StringUtils.isNotBlank(user.getPwdSign())) &&
 			// (!this.userService.getPasswordSign(user.getPassword()).equals(user.getPwdSign())))
@@ -101,7 +111,7 @@ public abstract class BaseUserController<M extends User> extends BaseExtJSCrudMo
 		JsonMsg msg = new JsonMsg(false);
 		String userIds = getRequest().getParameter("userIds");
 		if (StringUtils.isNotBlank(userIds)) {
-			User user = this.modelService.findById(User.class, userIds);
+			User user = this.modelService.collect(ModelCollectors.getModelByOnlyPrimaryKeyEQ(User.class, userIds));
 			if (user != null) {
 				msg.setMsg(JSDesCoder.strDec(user.getPassword(), "1", "2", "3"));
 				msg.setSuccess(true);
@@ -174,17 +184,12 @@ public abstract class BaseUserController<M extends User> extends BaseExtJSCrudMo
 		PageInfo pageInfo = null;
 		// setSortMap(model);
 		model.addSortFields(getSortFieldMap());
-		String roleId = getRequest().getParameter("roleId");
-		if (StringUtils.isEmpty(roleId)) {
-			pageInfo = new PageInfo(modelService.findBySqlModel(UserDTO.class, getFindUserVOSql(), model));
-		} else {
-			pageInfo = new PageInfo(modelService.findBySqlModel(UserByRoleDTO.class, model));
-		}
+		pageInfo = new PageInfo(userQueryHandler.queryUser(getRequest(), model));
 		return pageInfoToJson(pageInfo);
 	}
 
 	@Override
-	protected boolean validateModel(M model, JsonMsg msg) throws Exception {
+	public boolean validateModel(M model, DFEJsonMsg msg) throws Exception {
 		if (StringUtils.isBlank(model.getId())) {
 			model.setUsername(model.getUsername().trim());
 			User u = userCommonService.findByUserName(model.getUsername());
@@ -219,7 +224,7 @@ public abstract class BaseUserController<M extends User> extends BaseExtJSCrudMo
 	}
 
 	@Override
-	protected void beforeQuery(M model) throws Exception {
+	public void beforeQuery(M model) throws Exception {
 
 		model.addConditionOperator("realName", "LIKE");
 		model.addConditionOperator("username", "LIKE");
@@ -238,7 +243,7 @@ public abstract class BaseUserController<M extends User> extends BaseExtJSCrudMo
 	}
 
 	@Override
-	protected void saveModel(M model) throws Exception {
+	public void saveModel(M model) throws Exception {
 		String usrRoles = getParameter("usrRoles");
 		List<String> userRoles = null;
 		if (StringUtils.isNotBlank(usrRoles)) {
@@ -248,7 +253,7 @@ public abstract class BaseUserController<M extends User> extends BaseExtJSCrudMo
 	}
 
 	@Override
-	protected void modifyModel(M model) throws Exception {
+	public void modifyModel(M model) throws Exception {
 		String usrRoles = getParameter("usrRoles");
 		List<String> userRoles = null;
 		if (StringUtils.isNotBlank(usrRoles)) {
@@ -260,35 +265,16 @@ public abstract class BaseUserController<M extends User> extends BaseExtJSCrudMo
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected M retrieveModel(M model) throws Exception {
-		return (M) modelService.findFirstBySqlModel(UserDTO.class, getFindUserVOSql(), model);
+	public M retrieveModel(M model) throws Exception {
+		return (M) userQueryHandler.getUser(getRequest(), model);
 	}
 
 	@Override
-	protected PageInfo<?> queryModel(SqlModel<M> sqlModel, Integer pageNum, Integer pageSize) throws Exception {
-		return new PageInfo<>(
-				modelService.findPageBySqlModel(UserDTO.class, getFindUserVOSql(), sqlModel, pageNum, pageSize));
+	public PageInfo<?> queryModel(SqlModel<M> sqlModel, Integer pageNum, Integer pageSize) throws Exception {
+		return userQueryHandler.queryUser(getRequest(), sqlModel.getModel(), pageNum, pageSize);
 	}
 
-	protected String getFindUserVOSql() {
-		Dialect dialect = modelService.getModelConfiguration().getDialect();
-		DialectType dialectType = dialect.getDialectType();
-		if (dialectType == DialectType.MYSQL) {
-			return "select usr.*, org.orgName usrOrgName, org.orgNo usrOrgNo, "
-					+ "(select group_concat(userrole.roleId) from CO_USER_ROLE userrole where userrole.userId = usr.id) usrRoles  "
-					+ "from CO_USER usr  " + "inner join CO_ORG org on usr.orgId = org.id and org.state = '0' ";
-		} else if (dialectType == DialectType.ORACLE) {
-			return "select usr.*, org.orgName usrOrgName, org.orgNo usrOrgNo , " + "(select "
-			// + "to_char(wm_concat(userrole.roleId)) "
-					+ "LISTAGG(userrole.roleId,',') WITHIN GROUP (ORDER BY userrole.roleId) "
-					+ "from CO_USER_ROLE userrole where userrole.userId = usr.id) usrRoles  " + "from CO_USER usr  "
-					+ "inner join CO_ORG org on usr.orgId = org.id and org.state = '0' ";
-		} else {
-			throw new UnsupportedOperationException("不支持的数据库方言：" + dialectType);
-		}
-	}
-
-	protected void checkPwdDIV(List<Map<String, Object>> modelList) {
+	public void checkPwdDIV(List<Map<String, Object>> modelList) {
 		if ((modelList != null) && (modelList.size() > 0)) {
 			for (Map<String, Object> model : modelList) {
 				String pwdSign = (String) model.get("pwdSign");

@@ -3,6 +3,7 @@
  */
 package dream.first.extjs.plugin.platform.module.controller;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,13 +16,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.yelong.commons.beans.BeanUtilsE;
 import org.yelong.commons.lang.Strings;
 import org.yelong.core.model.collector.ModelCollectors;
+import org.yelong.support.servlet.resource.response.ResourceResponseException;
+import org.yelong.support.spring.mvc.HandlerResponseWay;
+import org.yelong.support.spring.mvc.ResponseWay;
 
 import dream.first.core.platform.module.Modules;
 import dream.first.core.platform.module.manage.CacheableModuleManager;
 import dream.first.core.platform.module.manage.ModuleManager;
 import dream.first.core.platform.module.model.Module;
 import dream.first.core.platform.module.service.ModuleCommonService;
-import dream.first.extjs.controller.BaseExtJSCrudModelController;
+import dream.first.extjs.base.controller.DFBaseExtJSCrudModelController;
+import dream.first.extjs.plugin.platform.ExtJSPluginPlatform;
 import dream.first.extjs.plugin.platform.module.dto.ModuleDTO;
 import dream.first.extjs.plugin.platform.module.tree.ModuleTreeGenerateConfig;
 import dream.first.extjs.plugin.platform.module.tree.ModuleTreeGenerator;
@@ -33,8 +38,8 @@ import dream.first.extjs.support.store.TreeStoreData;
  * 
  * @since 2.0
  */
-@RequestMapping("module")
-public abstract class BaseModuleController<M extends ModuleDTO> extends BaseExtJSCrudModelController<M> {
+@RequestMapping({ "module", "extjs/plugin/platform/module" })
+public abstract class BaseModuleController<M extends ModuleDTO> extends DFBaseExtJSCrudModelController<M> {
 
 	@Resource
 	protected ModuleTreeGenerator moduleTreeGenerator;
@@ -45,9 +50,12 @@ public abstract class BaseModuleController<M extends ModuleDTO> extends BaseExtJ
 	@Resource
 	protected ModuleCommonService moduleCommonService;
 
+	@ResponseBody
 	@RequestMapping("index")
-	public String index() {
-		return "platform/module/moduleManage.jsp";
+	@ResponseWay(HandlerResponseWay.MODEL_AND_VIEW)
+	public void index() throws ResourceResponseException, IOException {
+		responseHtml(ExtJSPluginPlatform.RESOURCE_PRIVATES_PACKAGE,
+				ExtJSPluginPlatform.RESOURCE_PREFIX + "/html/module/moduleManage.html");
 	}
 
 	/**
@@ -58,7 +66,7 @@ public abstract class BaseModuleController<M extends ModuleDTO> extends BaseExtJ
 	public String copyModule() {
 		String modelId = getParameter("modelId");
 		Strings.requireNonBlank("必填参数缺失：modelId");
-		Module module = modelService.findById(Module.class, modelId);
+		Module module = modelService.collect(ModelCollectors.getModelByOnlyPrimaryKeyEQ(Module.class, modelId));
 		Objects.requireNonNull("不存在的模块！");
 		Integer copyNum = getParameterInteger("copyNum", 1);
 		if (copyNum < 1) {
@@ -102,7 +110,7 @@ public abstract class BaseModuleController<M extends ModuleDTO> extends BaseExtJ
 			}
 			value = ((String) value).replace(find, replaceWith);
 			BeanUtilsE.setProperty(module, column, value);
-			modelService.modifySelectiveById(module);
+			modelService.collect(ModelCollectors.modifyModelByOnlyPrimaryKeyEQ(module));
 			++successCount;
 		}
 		if (modelList.isEmpty()) {
@@ -142,27 +150,27 @@ public abstract class BaseModuleController<M extends ModuleDTO> extends BaseExtJ
 	}
 
 	@Override
-	protected void beforeQuery(M model) throws Exception {
+	public void beforeQuery(M model) throws Exception {
 		model.addConditionOperator("moduleName", "like");
 	}
 
 	@Override
-	protected void saveModel(M model) throws Exception {
+	public void saveModel(M model) throws Exception {
 		moduleCommonService.save(model);
 	}
 
 	@Override
-	protected void modifyModel(M model) throws Exception {
+	public void modifyModel(M model) throws Exception {
 		moduleCommonService.modifyById(model);
 	}
 
 	@Override
-	protected boolean deleteModel(String deleteIds) throws Exception {
+	public boolean deleteModel(String deleteIds) throws Exception {
 		return moduleCommonService.removerByModuleNoBatch(deleteIds.split(","));
 	}
 
 	@Override
-	protected M retrieveModel(M model) throws Exception {
+	public M retrieveModel(M model) throws Exception {
 		if (StringUtils.isBlank(model.getModuleNo())) {
 			return null;
 		}
@@ -171,17 +179,17 @@ public abstract class BaseModuleController<M extends ModuleDTO> extends BaseExtJ
 	}
 
 	@Override
-	protected void afterDelete(String deleteIds) throws Exception {
+	public void afterDelete(String deleteIds) throws Exception {
 		clearModuleCache();
 	}
 
 	@Override
-	protected void afterModify(M model) throws Exception {
+	public void afterModify(M model) throws Exception {
 		clearModuleCache();
 	}
 
 	@Override
-	protected void afterSave(M model) throws Exception {
+	public void afterSave(M model) throws Exception {
 		clearModuleCache();
 	}
 

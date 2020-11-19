@@ -1,5 +1,6 @@
 package dream.first.extjs.plugin.platform.role.controller;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -12,12 +13,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.yelong.support.servlet.resource.response.ResourceResponseException;
+import org.yelong.support.spring.mvc.HandlerResponseWay;
+import org.yelong.support.spring.mvc.ResponseWay;
 
 import dream.first.core.platform.role.constants.RoleType;
 import dream.first.core.platform.role.model.Role;
 import dream.first.core.platform.role.service.RoleCommonService;
 import dream.first.core.platform.role.service.RoleRightCommonService;
-import dream.first.extjs.controller.BaseExtJSCrudModelController;
+import dream.first.extjs.base.controller.DFBaseExtJSCrudModelController;
+import dream.first.extjs.base.msg.DFEJsonMsg;
+import dream.first.extjs.plugin.platform.ExtJSPluginPlatform;
 import dream.first.extjs.support.msg.JsonMsg;
 
 /**
@@ -26,8 +32,8 @@ import dream.first.extjs.support.msg.JsonMsg;
  * @param <M> role model type
  * @since 2.0
  */
-@RequestMapping("role")
-public abstract class BaseRoleController<M extends Role> extends BaseExtJSCrudModelController<M> {
+@RequestMapping({ "role", "extjs/plugin/platform/role" })
+public abstract class BaseRoleController<M extends Role> extends DFBaseExtJSCrudModelController<M> {
 
 	@Resource
 	protected RoleCommonService roleCommonService;
@@ -35,9 +41,12 @@ public abstract class BaseRoleController<M extends Role> extends BaseExtJSCrudMo
 	@Resource
 	protected RoleRightCommonService roleRightService;
 
+	@ResponseBody
 	@RequestMapping("index")
-	public String index() {
-		return "platform/role/roleManage.jsp";
+	@ResponseWay(HandlerResponseWay.MODEL_AND_VIEW)
+	public void index() throws ResourceResponseException, IOException {
+		responseHtml(ExtJSPluginPlatform.RESOURCE_PRIVATES_PACKAGE,
+				ExtJSPluginPlatform.RESOURCE_PREFIX + "/html/role/roleManage.html");
 	}
 
 	/**
@@ -107,12 +116,12 @@ public abstract class BaseRoleController<M extends Role> extends BaseExtJSCrudMo
 	}
 
 	@Override
-	protected void beforeQuery(M model) throws Exception {
+	public void beforeQuery(M model) throws Exception {
 		model.addConditionOperator("roleName", "LIKE");
 	}
 
 	@Override
-	protected boolean validateModel(M model, JsonMsg msg) throws Exception {
+	public boolean validateModel(M model, DFEJsonMsg msg) throws Exception {
 		if (StringUtils.isBlank(model.getId())) {
 			if (roleCommonService.existByRoleName(model.getRoleName())) {
 				msg.setSuccess(false);
@@ -124,7 +133,7 @@ public abstract class BaseRoleController<M extends Role> extends BaseExtJSCrudMo
 	}
 
 	@Override
-	protected void saveModel(M model) throws Exception {
+	public void saveModel(M model) throws Exception {
 		if (model.getRoleType().equals(RoleType.OPERATE.code())) {
 			String roleRights = getRequest().getParameter("roleRights");
 			List<String> moduleIds = null;
@@ -138,7 +147,7 @@ public abstract class BaseRoleController<M extends Role> extends BaseExtJSCrudMo
 	}
 
 	@Override
-	protected void modifyModel(M model) throws Exception {
+	public void modifyModel(M model) throws Exception {
 		String roleRights = getRequest().getParameter("roleRights");
 		List<String> moduleIds = null;
 		if (StringUtils.isNotEmpty(roleRights)) {

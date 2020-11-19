@@ -21,7 +21,7 @@ import dream.first.extjs.plugin.platform.user.dto.UserExtraOrgDTO;
  * @param <M>UserExtraOrg type
  * @since 2.0
  */
-@RequestMapping(value = "userExtraOrg")
+@RequestMapping({ "userExtraOrg", "extjs/plugin/platform/userExtraOrg" })
 public abstract class BaseUserExtraOrgController<M extends UserExtraOrg> extends BaseExtJSCrudModelController<M> {
 
 	@ResponseBody

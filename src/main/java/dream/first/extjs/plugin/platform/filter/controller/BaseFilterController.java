@@ -3,27 +3,36 @@
  */
 package dream.first.extjs.plugin.platform.filter.controller;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.yelong.support.servlet.resource.response.ResourceResponseException;
+import org.yelong.support.spring.mvc.HandlerResponseWay;
+import org.yelong.support.spring.mvc.ResponseWay;
 
 import com.google.gson.Gson;
 
-import dream.first.core.controller.BaseCoreController;
+import dream.first.extjs.base.controller.DFBaseExtJSController;
+import dream.first.extjs.plugin.platform.ExtJSPluginPlatform;
 import dream.first.extjs.plugin.platform.filter.bean.Filter;
 
 /**
  * 
  * @since 2.0
  */
-@RequestMapping("filter")
-public abstract class BaseFilterController extends BaseCoreController {
+@RequestMapping({ "filter", "extjs/plugin/platform/filter" })
+public abstract class BaseFilterController extends DFBaseExtJSController {
 
+	@ResponseBody
 	@RequestMapping("index")
-	public String index() {
-		return "filter/filter.jsp";
+	@ResponseWay(HandlerResponseWay.MODEL_AND_VIEW)
+	public void index() throws ResourceResponseException, IOException {
+		responseHtml(ExtJSPluginPlatform.RESOURCE_PRIVATES_PACKAGE,
+				ExtJSPluginPlatform.RESOURCE_PREFIX + "/html/filter/filter.html");
 	}
 
 	protected void handFilterInfo() {

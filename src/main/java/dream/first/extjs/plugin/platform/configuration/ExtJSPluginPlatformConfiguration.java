@@ -25,23 +25,36 @@ import dream.first.extjs.plugin.platform.org.controller.BaseOrgController;
 import dream.first.extjs.plugin.platform.org.controller.DefaultOrgController;
 import dream.first.extjs.plugin.platform.org.tree.DefaultOrgTreeGenerator;
 import dream.first.extjs.plugin.platform.org.tree.OrgTreeGenerator;
-import dream.first.extjs.plugin.platform.role.controller.BaseRoleDataRightController;
 import dream.first.extjs.plugin.platform.role.controller.BaseRoleController;
+import dream.first.extjs.plugin.platform.role.controller.BaseRoleDataRightController;
 import dream.first.extjs.plugin.platform.role.controller.DefaultRoleController;
 import dream.first.extjs.plugin.platform.role.controller.DefaultRoleDataRightController;
+import dream.first.extjs.plugin.platform.scip.controller.BaseSCIPController;
+import dream.first.extjs.plugin.platform.scip.controller.DefaultSCIPController;
 import dream.first.extjs.plugin.platform.security.controller.SecurityServiceController;
 import dream.first.extjs.plugin.platform.service.controller.BaseModuleServiceController;
 import dream.first.extjs.plugin.platform.service.controller.BaseModuleServiceInterfaceController;
 import dream.first.extjs.plugin.platform.service.controller.DefaultModuleServiceController;
 import dream.first.extjs.plugin.platform.service.controller.DefaultModuleServiceInterfaceController;
+import dream.first.extjs.plugin.platform.servlet.PlatformResourceServletRegistrationBean;
 import dream.first.extjs.plugin.platform.user.controller.BaseUserController;
 import dream.first.extjs.plugin.platform.user.controller.BaseUserExtraOrgController;
 import dream.first.extjs.plugin.platform.user.controller.DefaultUserController;
 import dream.first.extjs.plugin.platform.user.controller.DefaultUserExtraOrgController;
+import dream.first.extjs.plugin.platform.user.handle.UserQueryHandler;
+import dream.first.extjs.plugin.platform.user.handle.impl.DefaultUserQueryHandler;
 import dream.first.extjs.plugin.platform.user.service.UserService;
 import dream.first.extjs.plugin.platform.user.service.impl.UserServiceImpl;
 
 public class ExtJSPluginPlatformConfiguration {
+
+	// 资源
+	@Bean
+	public PlatformResourceServletRegistrationBean platformResourceServletRegistrationBean() {
+		return new PlatformResourceServletRegistrationBean();
+	}
+
+	// controller
 
 	@Bean
 	@ConditionalOnMissingBean(OrgTreeGenerator.class)
@@ -61,7 +74,19 @@ public class ExtJSPluginPlatformConfiguration {
 		return new UserServiceImpl(userCommonService);
 	}
 
+	@Bean
+	@ConditionalOnMissingBean(UserQueryHandler.class)
+	public UserQueryHandler userQueryHandler() {
+		return new DefaultUserQueryHandler();
+	}
+
 	// ==================================================controller==================================================
+	
+	@Bean
+	@ConditionalOnMissingBean(BaseSCIPController.class)
+	public DefaultSCIPController defaultSCIPDictController() {
+		return new DefaultSCIPController();
+	}
 
 	@Bean
 	@ConditionalOnMissingBean(BaseDictController.class)
@@ -92,19 +117,19 @@ public class ExtJSPluginPlatformConfiguration {
 	public DefaultModuleController defaultModuleController() {
 		return new DefaultModuleController();
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean(BaseOrgController.class)
 	public DefaultOrgController defaultOrgController() {
 		return new DefaultOrgController();
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean(BaseRoleController.class)
 	public DefaultRoleController defaultRoleController() {
 		return new DefaultRoleController();
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean(BaseRoleDataRightController.class)
 	public DefaultRoleDataRightController defaultRoleDataRightController() {
@@ -116,29 +141,29 @@ public class ExtJSPluginPlatformConfiguration {
 	public SecurityServiceController securityServiceController() {
 		return new SecurityServiceController();
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean(BaseModuleServiceController.class)
 	public DefaultModuleServiceController defaultModuleServiceController() {
 		return new DefaultModuleServiceController();
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean(BaseModuleServiceInterfaceController.class)
 	public DefaultModuleServiceInterfaceController defaultModuleServiceInterfaceController() {
 		return new DefaultModuleServiceInterfaceController();
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean(BaseUserController.class)
 	public DefaultUserController defaultUserController() {
 		return new DefaultUserController();
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean(BaseUserExtraOrgController.class)
 	public DefaultUserExtraOrgController defaultUserExtraOrgController() {
 		return new DefaultUserExtraOrgController();
 	}
-	
+
 }

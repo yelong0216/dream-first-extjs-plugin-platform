@@ -22,7 +22,7 @@ import dream.first.extjs.support.msg.JsonMsg;
  * @param <M> ModuleServiceInterface type
  * @since 2.0
  */
-@RequestMapping(value = "moduleServiceInterface")
+@RequestMapping({"moduleServiceInterface","extjs/plugin/platform/moduleServiceInterface"})
 public abstract class BaseModuleServiceInterfaceController<M extends ModuleServiceInterface>
 		extends BaseExtJSCrudModelController<M> {
 
@@ -50,13 +50,13 @@ public abstract class BaseModuleServiceInterfaceController<M extends ModuleServi
 	}
 
 	@Override
-	protected void beforeQuery(M model) throws Exception {
+	public void beforeQuery(M model) throws Exception {
 		model.addConditionOperator("interfaceName", "LIKE");
 		model.addConditionOperator("interfaceDesc", "LIKE");
 	}
 
 	@Override
-	protected boolean validateModel(M model, JsonMsg msg) throws Exception {
+	public boolean validateModel(M model, JsonMsg msg) throws Exception {
 		String interfaceName = model.getInterfaceName();
 		Strings.requireNonBlank(interfaceName, "请录入接口名称！");
 		boolean validateResult;
@@ -80,21 +80,21 @@ public abstract class BaseModuleServiceInterfaceController<M extends ModuleServi
 	}
 
 	@Override
-	protected void afterDelete(String deleteIds) throws Exception {
+	public void afterDelete(String deleteIds) throws Exception {
 		clearModuleServiceCache();
 	}
 
 	@Override
-	protected void afterModify(M model) throws Exception {
+	public void afterModify(M model) throws Exception {
 		clearModuleServiceCache();
 	}
 
 	@Override
-	protected void afterSave(M model) throws Exception {
+	public void afterSave(M model) throws Exception {
 		clearModuleServiceCache();
 	}
 
-	protected void clearModuleServiceCache() {
+	public void clearModuleServiceCache() {
 		if (moduleServiceManager instanceof CacheableModuleServiceManager) {
 			((CacheableModuleServiceManager) moduleServiceManager).clearCache();
 		}

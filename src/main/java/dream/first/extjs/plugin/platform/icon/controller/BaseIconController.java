@@ -3,6 +3,7 @@
  */
 package dream.first.extjs.plugin.platform.icon.controller;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import javax.annotation.Resource;
@@ -10,11 +11,16 @@ import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.yelong.commons.lang.Strings;
+import org.yelong.core.model.collector.ModelCollectors;
+import org.yelong.support.servlet.resource.response.ResourceResponseException;
+import org.yelong.support.spring.mvc.HandlerResponseWay;
+import org.yelong.support.spring.mvc.ResponseWay;
 
 import dream.first.core.platform.icon.manage.CacheableIconManager;
 import dream.first.core.platform.icon.manage.IconManager;
 import dream.first.core.platform.icon.model.Icon;
-import dream.first.extjs.controller.BaseExtJSCrudModelController;
+import dream.first.extjs.base.controller.DFBaseExtJSCrudModelController;
+import dream.first.extjs.plugin.platform.ExtJSPluginPlatform;
 import dream.first.extjs.support.msg.JsonMsg;
 
 /**
@@ -22,15 +28,18 @@ import dream.first.extjs.support.msg.JsonMsg;
  * 
  * @since 2.0
  */
-@RequestMapping("icon")
-public abstract class BaseIconController<M extends Icon> extends BaseExtJSCrudModelController<M> {
+@RequestMapping({ "icon", "extjs/plugin/platform/icon" })
+public abstract class BaseIconController<M extends Icon> extends DFBaseExtJSCrudModelController<M> {
 
 	@Resource
 	protected IconManager iconManager;
 
+	@ResponseBody
 	@RequestMapping("index")
-	public String index() {
-		return "platform/icon/iconManage.jsp";
+	@ResponseWay(HandlerResponseWay.MODEL_AND_VIEW)
+	public void index() throws ResourceResponseException, IOException {
+		responseHtml(ExtJSPluginPlatform.RESOURCE_PRIVATES_PACKAGE,
+				ExtJSPluginPlatform.RESOURCE_PREFIX + "/html/icon/iconManage.html");
 	}
 
 	/**
@@ -41,7 +50,7 @@ public abstract class BaseIconController<M extends Icon> extends BaseExtJSCrudMo
 	public String copyIcon() {
 		String modelId = getParameter("modelId");
 		Strings.requireNonBlank("必填参数缺失：modelId");
-		Icon dict = modelService.findById(Icon.class, modelId);
+		Icon dict = modelService.collect(ModelCollectors.getModelByOnlyPrimaryKeyEQ(Icon.class, modelId));
 		Objects.requireNonNull("不存在的图标！");
 		Integer copyNum = getParameterInteger("copyNum", 1);
 		if (copyNum < 1) {
@@ -60,22 +69,22 @@ public abstract class BaseIconController<M extends Icon> extends BaseExtJSCrudMo
 	}
 
 	@Override
-	protected void beforeQuery(M model) throws Exception {
+	public void beforeQuery(M model) throws Exception {
 		model.addConditionOperator("iconClass", "LIKE");
 	}
 
 	@Override
-	protected void afterDelete(String deleteIds) throws Exception {
+	public void afterDelete(String deleteIds) throws Exception {
 		clearIconCache();
 	}
 
 	@Override
-	protected void afterModify(M model) throws Exception {
+	public void afterModify(M model) throws Exception {
 		clearIconCache();
 	}
 
 	@Override
-	protected void afterSave(M model) throws Exception {
+	public void afterSave(M model) throws Exception {
 		clearIconCache();
 	}
 

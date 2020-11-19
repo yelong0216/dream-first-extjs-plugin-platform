@@ -13,7 +13,7 @@ import dream.first.extjs.controller.BaseExtJSCrudModelController;
  * 
  * @since 2.0
  */
-@RequestMapping(value = "roleDataRight")
+@RequestMapping({ "roleDataRight", "extjs/plugin/platform/roleDataRight" })
 public abstract class BaseRoleDataRightController<M extends RoleDataRight> extends BaseExtJSCrudModelController<M> {
 
 }

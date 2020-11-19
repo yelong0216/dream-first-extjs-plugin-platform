@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="${STATIC_RESOURCES_ROOT_PATH}/js/jq.js"></script>
+<script src="${STATIC_RESOURCES_ROOT_PATH}/js/filter/laydate/laydate.js"></script>
+<link rel="stylesheet" href="${STATIC_RESOURCES_ROOT_PATH}/css/filter/filtrate.css">
+
+<jsp:include page="${COMMONLIB_PATH}"></jsp:include>
+
+<script type="text/javascript" src="${THIS_PROJECT_ROOT_PATH}/dict/dict"></script>
+<style type="text/css">
+#img {
+	background: url('${STATIC_RESOURCES_ROOT_PATH}/images/filtrate/del.png') no-repeat 13px 4px;
+	background-size: 30% 60%;
+}
+</style>
+<script type="text/javascript">
+	var filters = ${filters};
+	//var v = Object.keys(fieldNames);
+	//fieldNames = JSON.parse(fieldNames);//将json字符串格式化为json对象
+</script>
+<title>筛选</title>
+</head>
+<body>
+	<div class="background" id = "abc">
+		<div class="box">
+			<p style="height: 36px;"></p>
+			<div class="auto">
+				<div style="float: left;">
+					<p>且</p>
+					<p onclick="addFilter(this)"
+						style="font-size: 20px; margin-left: 15px;">
+						<img src="${STATIC_RESOURCES_ROOT_PATH}/images/filtrate/add.png" alt="" align="top">
+					</p>
+				</div>
+				<div style="float: right;" class="table">
+					<table style="border-collapse: separate; border-spacing: 0px 10px;">
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="${STATIC_RESOURCES_ROOT_PATH}/js/filter/filter.js"> </script>
+</body>
+</html>

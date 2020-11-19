@@ -59,6 +59,9 @@ public class DefaultOrgTreeGenerator implements OrgTreeGenerator {
 					}
 				}
 			}
+			if(checkbox) {
+				treeStoreData.setChecked(false);
+			}
 			storeTreeDatas.add(treeStoreData);
 		} else {
 			storeTreeDatas = getChildrens(org, recursion, checkbox);
